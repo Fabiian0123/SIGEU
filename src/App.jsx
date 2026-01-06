@@ -8,7 +8,7 @@ function App() {
 
   return (
     <>
-      <center>Y entonces papachos</center>
+      <center>Y entonces papachos todo en la rama dev porfavor</center>
         
     </>
   )
