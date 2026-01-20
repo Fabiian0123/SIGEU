@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import './index.css'
+import 'bootstrap/dist/css/bootstrap.min.css'   
 import { routes } from './routes'
 import { AuthProvider } from './contexts/AuthContext'
 
@@ -19,4 +20,7 @@ createRoot(rootElement).render(
       <RouterProvider router={router} />
     </AuthProvider>
   </StrictMode>,
+    <RouterProvider router={router} />
+  </StrictMode>
 )
+
