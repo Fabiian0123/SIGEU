@@ -1,10 +1,12 @@
 import React from "react";
+import Header from "./Header";
+import EventosAdmin from "./EventosAdmin";
 
-const HomeAdmin = () => {
+const HomeAdmin: React.FC = () => {
     return (
         <>
-            <h1>Welcome to the Admin Home Page</h1>
-            <p>This is the admin dashboard where you can manage the application.</p>
+            <Header/>
+            <EventosAdmin/>
         </>
     )
 }
