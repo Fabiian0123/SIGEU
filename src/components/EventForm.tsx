@@ -14,12 +14,16 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
       title: '',
       description: '',
       date: '',
+      dateEnd: '',
       time: '',
       location: '',
       capacity: 50,
       attendees: 0,
       category: 'conferencia',
-      status: 'planeado',
+      carrera: '',
+      semestre: '',
+      observaciones: '',
+      fechaCreacion: new Date().toISOString().split('T')[0],
       organizer: '',
     }
   )
@@ -32,8 +36,11 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
     if (!formData.title?.trim()) newErrors.title = 'El título es requerido'
     if (!formData.description?.trim()) newErrors.description = 'La descripción es requerida'
     if (!formData.date) newErrors.date = 'La fecha es requerida'
+    if (!formData.dateEnd) newErrors.dateEnd = 'La fecha fin es requerida'
     if (!formData.time) newErrors.time = 'La hora es requerida'
     if (!formData.location?.trim()) newErrors.location = 'La ubicación es requerida'
+    if (!formData.carrera?.trim()) newErrors.carrera = 'La carrera es requerida'
+    if (!formData.semestre?.trim()) newErrors.semestre = 'El semestre es requerido'
     if (!formData.organizer?.trim()) newErrors.organizer = 'El organizador es requerido'
     if (!formData.capacity || formData.capacity < 1)
       newErrors.capacity = 'La capacidad debe ser mayor a 0'
@@ -70,12 +77,16 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
       title: formData.title!,
       description: formData.description!,
       date: formData.date!,
+      dateEnd: formData.dateEnd!,
       time: formData.time!,
       location: formData.location!,
       capacity: formData.capacity || 50,
       attendees: formData.attendees || 0,
       category: (formData.category as EventCategory) || 'conferencia',
-      status: (formData.status as EventStatus) || 'planeado',
+      carrera: formData.carrera!,
+      semestre: formData.semestre!,
+      observaciones: formData.observaciones,
+      fechaCreacion: formData.fechaCreacion || new Date().toISOString().split('T')[0],
       organizer: formData.organizer!,
       image: formData.image,
     }
@@ -128,6 +139,19 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
         </div>
 
         <div className='form-group'>
+          <label htmlFor='dateEnd'>Fecha Fin</label>
+          <input
+            type='date'
+            id='dateEnd'
+            name='dateEnd'
+            value={formData.dateEnd || ''}
+            onChange={handleChange}
+            className={errors.dateEnd ? 'input-error' : ''}
+          />
+          {errors.dateEnd && <span className='error-message'>{errors.dateEnd}</span>}
+        </div>
+
+        <div className='form-group'>
           <label htmlFor='time'>Hora</label>
           <input
             type='time'
@@ -171,20 +195,6 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
         </div>
 
         <div className='form-group'>
-          <label htmlFor='attendees'>Asistentes Actuales</label>
-          <input
-            type='number'
-            id='attendees'
-            name='attendees'
-            value={formData.attendees || 0}
-            onChange={handleChange}
-            min='0'
-          />
-        </div>
-      </div>
-
-      <div className='form-row'>
-        <div className='form-group'>
           <label htmlFor='category'>Categoría</label>
           <select
             id='category'
@@ -200,21 +210,75 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
             <option value='otro'>Otro</option>
           </select>
         </div>
+      </div>
+
+      <div className='form-row'>
+        <div className='form-group'>
+          <label htmlFor='carrera'>Carrera</label>
+          <select
+            id='carrera'
+            name='carrera'
+            value={formData.carrera || ''}
+            onChange={handleChange}
+            className={errors.carrera ? 'input-error' : ''}
+          >
+            <option value=''>Selecciona una carrera</option>
+            <option value='Ingeniería en Sistemas'>Ingeniería en Sistemas</option>
+            <option value='Ingeniería Industrial'>Ingeniería Industrial</option>
+            <option value='Administración'>Administración</option>
+            <option value='Contabilidad'>Contabilidad</option>
+            <option value='Derecho'>Derecho</option>
+          </select>
+          {errors.carrera && <span className='error-message'>{errors.carrera}</span>}
+        </div>
 
         <div className='form-group'>
-          <label htmlFor='status'>Estado</label>
+          <label htmlFor='semestre'>Semestre</label>
           <select
-            id='status'
-            name='status'
-            value={formData.status || 'activo'}
+            id='semestre'
+            name='semestre'
+            value={formData.semestre || ''}
             onChange={handleChange}
+            className={errors.semestre ? 'input-error' : ''}
           >
-            <option value='activo'>Activo</option>
-            <option value='planeado'>Planeado</option>
-            <option value='en_progreso'>En Progreso</option>
-            <option value='finalizado'>Finalizado</option>
-            <option value='cancelado'>Cancelado</option>
+            <option value=''>Selecciona un semestre</option>
+            <option value='1'>1</option>
+            <option value='2'>2</option>
+            <option value='3'>3</option>
+            <option value='4'>4</option>
+            <option value='5'>5</option>
+            <option value='6'>6</option>
+            <option value='7'>7</option>
+            <option value='8'>8</option>
+            <option value='9'>9</option>
+            <option value='10'>10</option>
           </select>
+          {errors.semestre && <span className='error-message'>{errors.semestre}</span>}
+        </div>
+      </div>
+
+      <div className='form-group'>
+        <label htmlFor='observaciones'>Observaciones</label>
+        <textarea
+          id='observaciones'
+          name='observaciones'
+          value={formData.observaciones || ''}
+          onChange={handleChange}
+          placeholder='Agregar observaciones adicionales'
+          rows={3}
+        />
+      </div>
+
+      <div className='form-row'>
+        <div className='form-group'>
+          <label htmlFor='fechaCreacion'>Fecha de Creación</label>
+          <input
+            type='date'
+            id='fechaCreacion'
+            name='fechaCreacion'
+            value={formData.fechaCreacion || new Date().toISOString().split('T')[0]}
+            disabled
+          />
         </div>
       </div>
 
