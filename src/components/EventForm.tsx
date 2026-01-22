@@ -172,6 +172,48 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
       return { ...prev, [name]: value };
     });
 
+    const newErrors: Record<string, string> = {}
+
+    if (!formData.title?.trim()) newErrors.title = 'El título es requerido'
+    if (!formData.description?.trim()) newErrors.description = 'La descripción es requerida'
+    if (!formData.date) newErrors.date = 'La fecha es requerida'
+    if (!formData.dateEnd) newErrors.dateEnd = 'La fecha fin es requerida'
+    if (!formData.time) newErrors.time = 'La hora es requerida'
+    if (!formData.location?.trim()) newErrors.location = 'La ubicación es requerida'
+    if (!formData.carrera?.trim()) newErrors.carrera = 'La carrera es requerida'
+    if (!formData.semestre?.trim()) newErrors.semestre = 'El semestre es requerido'
+    if (!formData.organizer?.trim()) newErrors.organizer = 'El organizador es requerido'
+    if (!formData.capacity || formData.capacity < 1)
+      newErrors.capacity = 'La capacidad debe ser mayor a 0'
+
+    // Validación de hora: no puede ser la hora actual si es hoy
+    const today = new Date().toISOString().split('T')[0]
+    if (formData.date === today && formData.time) {
+      const now = new Date()
+      const currentHour = String(now.getHours()).padStart(2, '0')
+      const currentMinute = String(now.getMinutes()).padStart(2, '0')
+      const currentTime = `${currentHour}:${currentMinute}`
+      
+      if (formData.time === currentTime) {
+        newErrors.time = 'No puede crear un evento para la hora actual'
+      } else if (formData.time < currentTime) {
+        newErrors.time = 'No puede crear un evento para una hora que ya pasó'
+      }
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'capacity' || name === 'attendees' ? parseInt(value) : value,
+    }))
+    // Limpiar error del campo
     if (errors[name]) {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -342,6 +384,13 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
             placeholder={locationEnabled ? "Ej: Aula 101" : "Se habilita solo si la sala es Salones (id 1)"}
             disabled={!locationEnabled}
             className={errors.location ? "input-error" : ""}
+            type='number'
+            id='capacity'
+            name='capacity'
+            value={formData.capacity || 50}
+            readOnly
+            min='1'
+            className={errors.capacity ? 'input-error' : ''}
           />
           {errors.location && <span className="error-message">{errors.location}</span>}
         </div>
