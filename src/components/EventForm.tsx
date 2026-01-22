@@ -45,6 +45,21 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
     if (!formData.capacity || formData.capacity < 1)
       newErrors.capacity = 'La capacidad debe ser mayor a 0'
 
+    // Validación de hora: no puede ser la hora actual si es hoy
+    const today = new Date().toISOString().split('T')[0]
+    if (formData.date === today && formData.time) {
+      const now = new Date()
+      const currentHour = String(now.getHours()).padStart(2, '0')
+      const currentMinute = String(now.getMinutes()).padStart(2, '0')
+      const currentTime = `${currentHour}:${currentMinute}`
+      
+      if (formData.time === currentTime) {
+        newErrors.time = 'No puede crear un evento para la hora actual'
+      } else if (formData.time < currentTime) {
+        newErrors.time = 'No puede crear un evento para una hora que ya pasó'
+      }
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -187,7 +202,7 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
             id='capacity'
             name='capacity'
             value={formData.capacity || 50}
-            onChange={handleChange}
+            readOnly
             min='1'
             className={errors.capacity ? 'input-error' : ''}
           />
