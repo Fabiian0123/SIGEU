@@ -70,16 +70,16 @@ const EventCard: FC<EventCardProps> = ({ event, onEdit, onDelete, onRegister }) 
 
         <div className='event-card-details'>
           <div className='detail-item'>
+            <strong>� Ubicación:</strong>
+            <span>{event.location}</span>
+          </div>
+          <div className='detail-item'>
             <strong>📅 Fecha:</strong>
             <span>{formatDate(event.date)}</span>
           </div>
           <div className='detail-item'>
             <strong>🕐 Hora:</strong>
             <span>{event.time}</span>
-          </div>
-          <div className='detail-item'>
-            <strong>📍 Ubicación:</strong>
-            <span>{event.location}</span>
           </div>
           <div className='detail-item'>
             <strong>👥 Asistentes:</strong>
