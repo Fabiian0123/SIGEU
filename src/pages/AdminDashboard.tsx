@@ -26,7 +26,7 @@ const AdminDashboard: FC = () => {
         setLoading(true)
         setError('')
         const data = await eventosAPI.getAll()
-        setEvents(data)
+        setEvents(Array.isArray(data) ? data : [])
       } catch (err) {
         console.error('Error loading eventos:', err)
         setError('Error al cargar los eventos.')
@@ -40,7 +40,7 @@ const AdminDashboard: FC = () => {
 
   // Filtrar eventos
   useEffect(() => {
-    let filtered = events
+    let filtered = Array.isArray(events) ? events : []
 
     if (filterStatus !== 'todos') {
       filtered = filtered.filter(e => e.status === filterStatus)
@@ -60,7 +60,7 @@ const AdminDashboard: FC = () => {
   const handleAddEvent = async (newEvent: Event) => {
     try {
       const createdEvent = await eventosAPI.create(newEvent)
-      setEvents([...events, createdEvent])
+      setEvents([...(Array.isArray(events) ? events : []), createdEvent])
       setShowForm(false)
       setViewMode('lista')
       alert('¡Evento creado exitosamente!')
@@ -73,7 +73,7 @@ const AdminDashboard: FC = () => {
   const handleUpdateEvent = async (updatedEvent: Event) => {
     try {
       await eventosAPI.update(updatedEvent.id, updatedEvent)
-      const updatedEvents = events.map(e => (e.id === updatedEvent.id ? updatedEvent : e))
+      const updatedEvents = (Array.isArray(events) ? events : []).map(e => (e.id === updatedEvent.id ? updatedEvent : e))
       setEvents(updatedEvents)
       setEditingEvent(undefined)
       setShowForm(false)
@@ -89,7 +89,7 @@ const AdminDashboard: FC = () => {
     if (confirm('⚠️ ¿Estás seguro de que quieres eliminar este evento? Esta acción no se puede deshacer.')) {
       try {
         await eventosAPI.delete(eventId)
-        const updatedEvents = events.filter(e => e.id !== eventId)
+        const updatedEvents = (Array.isArray(events) ? events : []).filter(e => e.id !== eventId)
         setEvents(updatedEvents)
         setSelectedEvent(undefined)
         alert('✓ Evento eliminado correctamente')
@@ -108,18 +108,18 @@ const AdminDashboard: FC = () => {
 
   // Estadísticas
   const stats = {
-    totalEventos: events.length,
-    eventosActivos: events.filter(e => e.status === 'activo').length,
-    eventosFinalizados: events.filter(e => e.status === 'finalizado').length,
-    lugaresDisponibles: events.reduce((total, e) => total + (e.capacity - e.attendees), 0),
-    asistentesTotales: events.reduce((total, e) => total + e.attendees, 0),
-    eventoLlenoCount: events.filter(e => e.attendees >= e.capacity).length,
-    proximoEvento: events
+    totalEventos: (Array.isArray(events) ? events : []).length,
+    eventosActivos: (Array.isArray(events) ? events : []).filter(e => e.status === 'activo').length,
+    eventosFinalizados: (Array.isArray(events) ? events : []).filter(e => e.status === 'finalizado').length,
+    lugaresDisponibles: (Array.isArray(events) ? events : []).reduce((total, e) => total + (e.capacity - e.attendees), 0),
+    asistentesTotales: (Array.isArray(events) ? events : []).reduce((total, e) => total + e.attendees, 0),
+    eventoLlenoCount: (Array.isArray(events) ? events : []).filter(e => e.attendees >= e.capacity).length,
+    proximoEvento: (Array.isArray(events) ? events : [])
       .filter(e => e.status === 'activo')
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0],
   }
 
-  const categoryStats = events.reduce((acc, e) => {
+  const categoryStats = (Array.isArray(events) ? events : []).reduce((acc, e) => {
     acc[e.category] = (acc[e.category] || 0) + 1
     return acc
   }, {} as Record<string, number>)
@@ -172,7 +172,7 @@ const AdminDashboard: FC = () => {
           className={`admin-tab ${viewMode === 'lista' ? 'active' : ''}`}
           onClick={() => setViewMode('lista')}
         >
-          📋 Eventos ({events.length})
+          📋 Eventos ({(Array.isArray(events) ? events : []).length})
         </button>
         <button
           className={`admin-tab ${viewMode === 'estadisticas' ? 'active' : ''}`}
@@ -384,3 +384,4 @@ const AdminDashboard: FC = () => {
 }
 
 export default AdminDashboard
+
