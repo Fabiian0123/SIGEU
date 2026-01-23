@@ -1,56 +1,59 @@
-// Estados que usa la UI (derivados del backend)
 export type EventStatus =
-  | 'activo'
+  | 'creado'
   | 'finalizado'
+  | 'postpuesto'
+  | 'pausado'
   | 'cancelado';
 
-// Categorías (tipos de evento)
 export type EventCategory =
-  | 'conferencia'
-  | 'taller'
-  | 'seminario'
-  | 'social'
-  | 'competencia'
-  | 'otro';
+  | 'Institucional'
+  | 'Académico'
+  | 'Recreativo y Cultural'
+  | 'Religioso'
+  | 'Deportivo'
+  | 'Eventos de Extensión y Proyección'
+  | 'Social'
+  | 'Eventos Memoriales/Solemnes'
+  | 'Eventos Administrativos'
+  | 'Eventos de Innovación, Ciencia, y Tecnología'
+  | 'Eventos Empresariales y de Empleabilidad'
+  | 'Otro'
+
 
 export interface Event {
-  // Identificador
   id: string;
 
-  // Información principal
   title: string;
   description: string;
 
-  // Fechas
-  date: string;       // fecha_inicio
-  dateEnd: string;    // fecha_fin
+  date: string;
+  dateEnd: string;
   time: string;
 
-  // Ubicación
   location: string;
 
-  // Capacidad
   capacity: number;
   attendees: number;
 
-  // Clasificación
   category: EventCategory;
 
-  // Relación académica (texto para UI)
   carrera: string;
   semestre: string;
 
-  // Estado del evento
   status: EventStatus;
 
-  // Observaciones
   observaciones?: string;
 
-  // Auditoría
   fechaCreacion: string;
   organizer: string;
 
-  // Opcional
   image?: string;
-}
 
+  tipo_evento_label?: string;
+
+  id_tipo_evento?: number | '';
+  id_salas?: number | '';
+  id_carrera?: number | '';
+  id_semestre?: number | '';
+  id_estado?: number | '';
+}

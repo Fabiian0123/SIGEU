@@ -14,7 +14,7 @@ const AuthPage: FC = () => {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setSuccess('')
@@ -25,7 +25,7 @@ const AuthPage: FC = () => {
     }
 
     if (isLogin) {
-      if (login(email, password)) {
+      if (await login(email, password)) {
         setSuccess('¡Inicio de sesión exitoso!')
         setTimeout(() => {
           const user = JSON.parse(localStorage.getItem('sigeu_current_user') || '{}')
@@ -44,7 +44,7 @@ const AuthPage: FC = () => {
         return
       }
 
-      if (register(email, password, nombre, rol)) {
+      if (await register(email, password, nombre, rol)) {
         setSuccess('¡Registro exitoso! Iniciando sesión...')
         setTimeout(() => {
           if (rol === 'administrativo') {
@@ -164,3 +164,4 @@ const AuthPage: FC = () => {
 }
 
 export default AuthPage
+

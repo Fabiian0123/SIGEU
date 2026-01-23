@@ -3,13 +3,14 @@ import { Event } from '../types/Event'
 import '../styles/EventCard.css'
 
 interface EventCardProps {
-  event: Event;
-  onEdit?: (event: Event) => void;
-  onDelete?: (eventId: string) => void;
-  onRegister?: (eventId: string) => void;
+  event: Event
+  onEdit?: (event: Event) => void
+  onDelete?: (eventId: string) => void
+  onRegister?: (eventId: string) => void
+  disabled?: boolean
 }
 
-const EventCard: FC<EventCardProps> = ({ event, onEdit, onDelete, onRegister }) => {
+const EventCard: FC<EventCardProps> = ({ event, onEdit, onDelete, onRegister, disabled }) => {
   const [isHovered, setIsHovered] = useState(false)
 
   const formatDate = (dateStr: string) => {
@@ -23,12 +24,14 @@ const EventCard: FC<EventCardProps> = ({ event, onEdit, onDelete, onRegister }) 
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'planeado':
+      case 'creado':
         return '#3498db'
-      case 'en_progreso':
-        return '#f39c12'
       case 'finalizado':
         return '#27ae60'
+      case 'postpuesto':
+        return '#f39c12'
+      case 'pausado':
+        return '#9b59b6'
       case 'cancelado':
         return '#e74c3c'
       default:
@@ -36,16 +39,16 @@ const EventCard: FC<EventCardProps> = ({ event, onEdit, onDelete, onRegister }) 
     }
   }
 
-  const getCategoryLabel = (category: string) => {
-    const labels: Record<string, string> = {
-      conferencia: 'Conferencia',
-      taller: 'Taller',
-      seminario: 'Seminario',
-      social: 'Evento Social',
-      otro: 'Otro',
-    }
-    return labels[category] || category
-  }
+  const tipoEventoLabel =
+    String(
+      (event as any)?.tipo_evento_label ??
+        (event as any)?.nombre_evento ??
+        event.category ??
+        ''
+    ).trim()
+
+  const isFull = event.attendees >= event.capacity
+  const isDisabled = Boolean(disabled) || isFull
 
   return (
     <div
@@ -53,43 +56,60 @@ const EventCard: FC<EventCardProps> = ({ event, onEdit, onDelete, onRegister }) 
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {event.image && <img src={event.image} alt={event.title} className='event-card-image' />}
+      {(event as any).image && (
+        <img
+          src={(event as any).image}
+          alt={event.title}
+          className='event-card-image'
+        />
+      )}
+
       <div className='event-card-content'>
         <div className='event-card-header'>
           <h3 className='event-card-title'>{event.title}</h3>
           <span
             className='event-card-status'
-            style={{ backgroundColor: getStatusColor(event.status) }}
+            style={{ backgroundColor: getStatusColor(String((event as any).status ?? '')) }}
           >
-            {event.status.replace('_', ' ').toUpperCase()}
+            {String((event as any).status ?? '').replace('_', ' ').toUpperCase()}
           </span>
         </div>
 
-        <p className='event-card-category'>{getCategoryLabel(event.category)}</p>
+        <p className='event-card-category'>{tipoEventoLabel || 'Sin tipo'}</p>
+
         <p className='event-card-description'>{event.description}</p>
 
         <div className='event-card-details'>
           <div className='detail-item'>
             <strong>📅 Fecha:</strong>
-            <span>{formatDate(event.date)}</span>
+            <span>{event.date ? formatDate(event.date) : ''}</span>
           </div>
+
           <div className='detail-item'>
             <strong>🕐 Hora:</strong>
             <span>{event.time}</span>
           </div>
+
           <div className='detail-item'>
-            <strong>📍 Ubicación:</strong>
+            <strong>📍 Sala/Lugar:</strong>
             <span>{event.location}</span>
           </div>
+
+          <div className='detail-item'>
+            <strong>🎓 Carrera:</strong>
+            <span>{(event as any).carrera ?? ''}</span>
+          </div>
+
+          <div className='detail-item'>
+            <strong>📚 Semestre:</strong>
+            <span>{(event as any).semestre ?? ''}</span>
+          </div>
+
           <div className='detail-item'>
             <strong>👥 Asistentes:</strong>
             <span>
               {event.attendees}/{event.capacity}
             </span>
-          </div>
-          <div className='detail-item'>
-            <strong>👤 Organizador:</strong>
-            <span>{event.organizer}</span>
           </div>
         </div>
 
@@ -99,16 +119,18 @@ const EventCard: FC<EventCardProps> = ({ event, onEdit, onDelete, onRegister }) 
               <button
                 onClick={() => onRegister(event.id)}
                 className='btn-register'
-                disabled={event.attendees >= event.capacity}
+                disabled={isDisabled}
               >
-                {event.attendees >= event.capacity ? 'Evento Lleno' : 'Registrarse'}
+                {isFull ? 'Evento Lleno' : isDisabled ? 'Ya estás registrado' : 'Asistiré'}
               </button>
             )}
+
             {onEdit && (
               <button onClick={() => onEdit(event)} className='btn-edit'>
                 Editar
               </button>
             )}
+
             {onDelete && (
               <button onClick={() => onDelete(event.id)} className='btn-delete'>
                 Eliminar
@@ -121,7 +143,7 @@ const EventCard: FC<EventCardProps> = ({ event, onEdit, onDelete, onRegister }) 
           <div
             className='capacity-fill'
             style={{
-              width: `${(event.attendees / event.capacity) * 100}%`,
+              width: `${event.capacity ? (event.attendees / event.capacity) * 100 : 0}%`,
               backgroundColor: event.attendees >= event.capacity ? '#e74c3c' : '#d42026',
             }}
           ></div>
@@ -132,3 +154,8 @@ const EventCard: FC<EventCardProps> = ({ event, onEdit, onDelete, onRegister }) 
 }
 
 export default EventCard
+
+
+
+
+

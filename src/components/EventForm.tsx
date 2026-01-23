@@ -111,6 +111,48 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
     };
   }, []);
 
+  useEffect(() => {
+    if (!initialEvent) return;
+
+    const ie: any = initialEvent;
+
+    const pickId = (...keys: string[]) => {
+      for (const k of keys) {
+        if (ie?.[k] !== undefined && ie?.[k] !== null && ie?.[k] !== "") return ie[k];
+      }
+      return "";
+    };
+
+    const toNumOrEmpty = (v: any) => (v === "" || v === null || v === undefined ? "" : Number(v));
+    const toDate10 = (v: any) => (v ? String(v).slice(0, 10) : "");
+
+    setFormData(prev => ({
+      ...prev,
+      title: ie?.title ?? ie?.titulo_evento ?? "",
+      description: ie?.description ?? ie?.descripcion ?? "",
+      date: toDate10(ie?.fecha_inicio ?? ie?.date),
+      dateEnd: toDate10(ie?.fecha_fin ?? ie?.dateEnd),
+      time: ie?.time ?? ie?.hora ?? "",
+
+      id_tipo_evento: toNumOrEmpty(pickId("id_tipo_evento", "idTipoEvento")),
+      id_salas: toNumOrEmpty(pickId("id_salas", "id_salas_id", "idSalas", "idSala")),
+      id_carrera: toNumOrEmpty(pickId("id_carrera", "idCarrera")),
+      id_semestre: toNumOrEmpty(pickId("id_semestre", "idSemestre")),
+      id_estado: (() => {
+        const v = toNumOrEmpty(pickId("id_estado", "idEstado"))
+        return v === 3 || v === 4 || v === 5 ? v : ""
+      })(),
+      location: ie?.location ?? "",
+      capacity: Number(ie?.capacity ?? ie?.capacidad ?? 50),
+      attendees: Number(ie?.attendees ?? 0),
+
+      observaciones: ie?.observaciones ?? "",
+      fechaCreacion: toDate10(ie?.fecha_creacion ?? ie?.fechaCreacion) || new Date().toISOString().split("T")[0],
+      organizer: ie?.organizer ?? ie?.creado_por ?? "",
+      image: ie?.image,
+    }));
+  }, [initialEvent]);
+
   const salaSeleccionada = useMemo(() => {
     if (!formData.id_salas) return null;
     return salas.find(s => s.id_salas === formData.id_salas) ?? null;
@@ -188,7 +230,7 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
     // OJO: acá seguimos devolviendo el "Event" que tu app usa,
     // pero ya viene con IDs (si ajustas tu type, mejor).
     const event: any = {
-      id: initialEvent?.id || Date.now().toString(),
+      id: (initialEvent as any)?.id ?? (initialEvent as any)?.id_evento ?? Date.now().toString(),
       title: formData.title,
       description: formData.description,
       date: formData.date,
@@ -204,7 +246,7 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
       id_carrera: formData.id_carrera,
       id_semestre: formData.id_semestre,
       id_salas: formData.id_salas,
-      id_estado: formData.id_estado,
+      id_estado: formData.id_estado === "" ? undefined : formData.id_estado,
 
       observaciones: formData.observaciones,
       fechaCreacion: formData.fechaCreacion,
@@ -447,3 +489,6 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
 };
 
 export default EventForm;
+
+
+

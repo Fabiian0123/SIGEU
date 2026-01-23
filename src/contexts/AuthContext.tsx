@@ -1,9 +1,9 @@
-import { createContext, useState, useContext, useEffect, ReactNode, FC } from 'react'
+// src/contexts/AuthContext.tsx
+import { createContext, useContext, useMemo, useState } from 'react'
 
 export type UserRole = 'estudiante' | 'administrativo'
 
 export interface User {
-  id: string
   email: string
   password: string
   nombre: string
@@ -12,89 +12,98 @@ export interface User {
 
 interface AuthContextType {
   currentUser: User | null
-  login: (email: string, password: string) => boolean
-  register: (email: string, password: string, nombre: string, rol: UserRole) => boolean
-  logout: () => void
   isAuthenticated: boolean
+  login: (email: string, password: string) => Promise<boolean>
+  register: (email: string, password: string, nombre: string, rol: UserRole) => Promise<boolean>
+  logout: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null)
+const LS_USERS_KEY = 'sigeu_users'
+const LS_CURRENT_USER_KEY = 'sigeu_current_user'
 
-  // Cargar usuarios desde localStorage
-  const getUsers = (): User[] => {
-    const users = localStorage.getItem('sigeu_users')
-    return users ? JSON.parse(users) : []
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
+
+function safeParse<T>(value: string | null): T | null {
+  if (!value) return null
+  try {
+    return JSON.parse(value) as T
+  } catch {
+    return null
+  }
+}
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    const saved = safeParse<User>(localStorage.getItem(LS_CURRENT_USER_KEY))
+    if (saved && typeof saved.email === 'string' && saved.email.trim() !== '') return saved
+    return null
+  })
+
+  const isAuthenticated = !!currentUser
+
+  const login = async (email: string, password: string) => {
+    // 1) tu lógica local (rol/nombre)
+    const users = safeParse<User[]>(localStorage.getItem(LS_USERS_KEY)) ?? []
+    const found = users.find(u => u.email === email && u.password === password)
+    if (!found) return false
+
+    // 2) pedir JWT al backend (SimpleJWT usa username)
+    const resp = await fetch(`${API_BASE_URL}/api/token/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ username: email, password }),
+    })
+
+    const data = await resp.json().catch(() => null)
+    if (!resp.ok || !data?.access) return false
+
+    localStorage.setItem('access_token', String(data.access))
+    if (data.refresh) localStorage.setItem('refresh_token', String(data.refresh))
+
+    setCurrentUser(found)
+    localStorage.setItem(LS_CURRENT_USER_KEY, JSON.stringify(found))
+    return true
   }
 
-  // Guardar usuarios en localStorage
-  const saveUsers = (users: User[]) => {
-    localStorage.setItem('sigeu_users', JSON.stringify(users))
-  }
+  const register = async (email: string, password: string, nombre: string, rol: UserRole) => {
+    const users = safeParse<User[]>(localStorage.getItem(LS_USERS_KEY)) ?? []
+    const exists = users.some(u => u.email === email)
+    if (exists) return false
 
-  // Restaurar sesión al cargar
-  useEffect(() => {
-    const savedUser = localStorage.getItem('sigeu_current_user')
-    if (savedUser) {
-      setCurrentUser(JSON.parse(savedUser))
-    }
-  }, [])
+    const newUser: User = { email, password, nombre, rol }
+    const updated = [...users, newUser]
 
-  const login = (email: string, password: string): boolean => {
-    const users = getUsers()
-    const user = users.find(u => u.email === email && u.password === password)
-
-    if (user) {
-      setCurrentUser(user)
-      localStorage.setItem('sigeu_current_user', JSON.stringify(user))
-      return true
-    }
-    return false
-  }
-
-  const register = (email: string, password: string, nombre: string, rol: UserRole): boolean => {
-    const users = getUsers()
-
-    // Verificar si el email ya existe
-    if (users.some(u => u.email === email)) {
-      return false
-    }
-
-    const newUser: User = {
-      id: Date.now().toString(),
-      email,
-      password,
-      nombre,
-      rol,
-    }
-
-    users.push(newUser)
-    saveUsers(users)
-
-    // Auto-login después de registrarse
+    localStorage.setItem(LS_USERS_KEY, JSON.stringify(updated))
+    localStorage.setItem(LS_CURRENT_USER_KEY, JSON.stringify(newUser))
     setCurrentUser(newUser)
-    localStorage.setItem('sigeu_current_user', JSON.stringify(newUser))
     return true
   }
 
   const logout = () => {
     setCurrentUser(null)
-    localStorage.removeItem('sigeu_current_user')
+    localStorage.removeItem(LS_CURRENT_USER_KEY)
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('refresh_token')
   }
 
-  return (
-    <AuthContext.Provider value={{ currentUser, login, register, logout, isAuthenticated: !!currentUser }}>
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo<AuthContextType>(
+    () => ({ currentUser, isAuthenticated, login, register, logout }),
+    [currentUser, isAuthenticated]
   )
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export const useAuth = () => {
-  const context = useContext(AuthContext)
-  if (!context) {
-    throw new Error('useAuth debe usarse dentro de AuthProvider')
-  }
-  return context
+  const ctx = useContext(AuthContext)
+  if (!ctx) throw new Error('useAuth must be used within an AuthProvider')
+  return ctx
 }
+
+
+
+
+
+
