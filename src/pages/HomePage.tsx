@@ -184,7 +184,7 @@ const HomePage: FC = () => {
           <div className='stat-label'>Eventos Totales</div>
         </div>
         <div className='stat-card'>
-          <div className='stat-number'>{events.filter(e => e.status === 'planeado').length}</div>
+          <div className='stat-number'>{events.filter(e => e.status === 'creado').length}</div>
           <div className='stat-label'>Por Venir</div>
         </div>
         <div className='stat-card'>

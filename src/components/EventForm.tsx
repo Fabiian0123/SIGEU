@@ -7,6 +7,7 @@ interface EventFormProps {
   onSubmit: (event: Event) => void;
   initialEvent?: Event;
   isLoading?: boolean;
+  
 }
 
 type FormState = {
@@ -15,6 +16,8 @@ type FormState = {
   date: string;
   dateEnd: string;
   time: string;
+  startDate: string;
+  endDate: string;
 
   // Nuevo: ids
   id_tipo_evento: number | "";
@@ -42,6 +45,8 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
     date: initialEvent?.date ?? "",
     dateEnd: initialEvent?.dateEnd ?? "",
     time: initialEvent?.time ?? "",
+    startDate: "",
+    endDate: "",
 
     // defaults (vacíos)
     id_tipo_evento: "",
@@ -256,6 +261,11 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
 
     onSubmit(event);
   };
+  const today = new Date();
+  const localToday =
+    today.getFullYear() + "-" +
+    String(today.getMonth() + 1).padStart(2, "0") + "-" +
+    String(today.getDate()).padStart(2, "0");
 
   return (
     <form className="event-form" onSubmit={handleSubmit}>
@@ -291,15 +301,32 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
 
       <div className="form-row">
         <div className="form-group">
-          <label htmlFor="date">Fecha</label>
-          <input type="date" id="date" name="date" value={formData.date} onChange={handleChange} className={errors.date ? "input-error" : ""} />
-          {errors.date && <span className="error-message">{errors.date}</span>}
+          <label htmlFor="startDate">Fecha Inicio</label>
+          <input
+            type="date"
+            id="startDate"
+            name="startDate"
+            value={formData.startDate}
+            onChange={handleChange}
+            min={localToday}
+            className={errors.startDate ? "input-error" : ""}
+          />
+          {errors.startDate && <span className="error-message">{errors.startDate}</span>}
         </div>
 
         <div className="form-group">
-          <label htmlFor="dateEnd">Fecha Fin</label>
-          <input type="date" id="dateEnd" name="dateEnd" value={formData.dateEnd} onChange={handleChange} className={errors.dateEnd ? "input-error" : ""} />
-          {errors.dateEnd && <span className="error-message">{errors.dateEnd}</span>}
+          <label htmlFor="endDate">Fecha Fin</label>
+          <input
+            type="date"
+            id="endDate"
+            name="endDate"
+            value={formData.endDate}
+            onChange={handleChange}
+            min={formData.startDate || localToday}
+            disabled={!formData.startDate}
+            className={errors.endDate ? "input-error" : ""}
+          />
+          {errors.endDate && <span className="error-message">{errors.endDate}</span>}
         </div>
 
         <div className="form-group">
