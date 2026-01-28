@@ -7,14 +7,12 @@ interface EventFormProps {
   onSubmit: (event: Event) => void;
   initialEvent?: Event;
   isLoading?: boolean;
-  
 }
 
 type FormState = {
   title: string;
   description: string;
-  date: string;
-  dateEnd: string;
+
   time: string;
   startDate: string;
   endDate: string;
@@ -42,8 +40,7 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
   const [formData, setFormData] = useState<FormState>(() => ({
     title: initialEvent?.title ?? "",
     description: initialEvent?.description ?? "",
-    date: initialEvent?.date ?? "",
-    dateEnd: initialEvent?.dateEnd ?? "",
+
     time: initialEvent?.time ?? "",
     startDate: "",
     endDate: "",
@@ -100,9 +97,6 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
         setSemestres(sem.data ?? []);
         setSalas(sal.data ?? []);
         setTipos(tip.data ?? []);
-
-        // Si no hay initialEvent, podrías setear defaults aquí (opcional)
-        // Ej: primer tipo/sala/semestre etc.
       } catch (e: any) {
         if (!mounted) return;
         setCatalogoError(e?.message ?? "Error cargando catálogos");
@@ -135,8 +129,9 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
       ...prev,
       title: ie?.title ?? ie?.titulo_evento ?? "",
       description: ie?.description ?? ie?.descripcion ?? "",
-      date: toDate10(ie?.fecha_inicio ?? ie?.date),
-      dateEnd: toDate10(ie?.fecha_fin ?? ie?.dateEnd),
+
+      startDate: toDate10(ie?.fecha_inicio ?? ie?.date),
+      endDate: toDate10(ie?.fecha_fin ?? ie?.dateEnd),
       time: ie?.time ?? ie?.hora ?? "",
 
       id_tipo_evento: toNumOrEmpty(pickId("id_tipo_evento", "idTipoEvento")),
@@ -144,8 +139,8 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
       id_carrera: toNumOrEmpty(pickId("id_carrera", "idCarrera")),
       id_semestre: toNumOrEmpty(pickId("id_semestre", "idSemestre")),
       id_estado: (() => {
-        const v = toNumOrEmpty(pickId("id_estado", "idEstado"))
-        return v === 3 || v === 4 || v === 5 ? v : ""
+        const v = toNumOrEmpty(pickId("id_estado", "idEstado"));
+        return v === 3 || v === 4 || v === 5 ? v : "";
       })(),
       location: ie?.location ?? "",
       capacity: Number(ie?.capacity ?? ie?.capacidad ?? 50),
@@ -183,8 +178,8 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
 
     if (!formData.title.trim()) newErrors.title = "El título es requerido";
     if (!formData.description.trim()) newErrors.description = "La descripción es requerida";
-    if (!formData.date) newErrors.date = "La fecha es requerida";
-    if (!formData.dateEnd) newErrors.dateEnd = "La fecha fin es requerida";
+    if (!formData.startDate) newErrors.startDate = "La fecha es requerida";
+    if (!formData.endDate) newErrors.endDate = "La fecha fin es requerida";
     if (!formData.time) newErrors.time = "La hora es requerida";
 
     if (!formData.id_tipo_evento) newErrors.id_tipo_evento = "El tipo de evento es requerido";
@@ -238,8 +233,8 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
       id: (initialEvent as any)?.id ?? (initialEvent as any)?.id_evento ?? Date.now().toString(),
       title: formData.title,
       description: formData.description,
-      date: formData.date,
-      dateEnd: formData.dateEnd,
+      date: formData.startDate,
+      dateEnd: formData.endDate,
       time: formData.time,
       location: formData.location,
 
@@ -261,10 +256,13 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
 
     onSubmit(event);
   };
+
   const today = new Date();
   const localToday =
-    today.getFullYear() + "-" +
-    String(today.getMonth() + 1).padStart(2, "0") + "-" +
+    today.getFullYear() +
+    "-" +
+    String(today.getMonth() + 1).padStart(2, "0") +
+    "-" +
     String(today.getDate()).padStart(2, "0");
 
   return (
@@ -516,6 +514,7 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
 };
 
 export default EventForm;
+
 
 
 
