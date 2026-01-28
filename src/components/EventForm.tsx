@@ -210,7 +210,7 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
     setFormData(prev => {
       // Campos numéricos
       if (name === "capacity" || name === "attendees") {
-        return { ...prev, [name]: Number(value) };
+        return { ...prev, [name]: value };
       }
 
       // IDs numéricos (selects)
