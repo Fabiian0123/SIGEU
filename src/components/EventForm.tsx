@@ -176,11 +176,18 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
+    const now = new Date();
+    const localNowTime = String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0");
+
     if (!formData.title.trim()) newErrors.title = "El título es requerido";
     if (!formData.description.trim()) newErrors.description = "La descripción es requerida";
     if (!formData.startDate) newErrors.startDate = "La fecha es requerida";
     if (!formData.endDate) newErrors.endDate = "La fecha fin es requerida";
     if (!formData.time) newErrors.time = "La hora es requerida";
+
+    if (formData.startDate === localToday && formData.time && formData.time < localNowTime) {
+      newErrors.time = "La hora no puede ser anterior a la hora actual";
+    }
 
     if (!formData.id_tipo_evento) newErrors.id_tipo_evento = "El tipo de evento es requerido";
     if (!formData.id_carrera) newErrors.id_carrera = "La carrera es requerida";
@@ -265,6 +272,11 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
     "-" +
     String(today.getDate()).padStart(2, "0");
 
+  const now = new Date();
+  const localNowTime =
+    String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0");
+  const minTime = formData.startDate === localToday ? localNowTime : undefined;
+
   return (
     <form className="event-form" onSubmit={handleSubmit}>
       {catalogoError && <div className="error-message" style={{ marginBottom: 12 }}>{catalogoError}</div>}
@@ -329,7 +341,15 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
 
         <div className="form-group">
           <label htmlFor="time">Hora</label>
-          <input type="time" id="time" name="time" value={formData.time} onChange={handleChange} className={errors.time ? "input-error" : ""} />
+          <input
+            type="time"
+            id="time"
+            name="time"
+            value={formData.time}
+            onChange={handleChange}
+            min={minTime}
+            className={errors.time ? "input-error" : ""}
+          />
           {errors.time && <span className="error-message">{errors.time}</span>}
         </div>
       </div>
