@@ -8,9 +8,10 @@ interface EventCardProps {
   onDelete?: (eventId: string) => void
   onRegister?: (eventId: string) => void
   disabled?: boolean
+  buttonText?: string
 }
 
-const EventCard: FC<EventCardProps> = ({ event, onEdit, onDelete, onRegister, disabled }) => {
+const EventCard: FC<EventCardProps> = ({ event, onEdit, onDelete, onRegister, disabled, buttonText }) => {
   const [isHovered, setIsHovered] = useState(false)
 
   const formatDate = (dateStr: string) => {
@@ -42,9 +43,9 @@ const EventCard: FC<EventCardProps> = ({ event, onEdit, onDelete, onRegister, di
   const tipoEventoLabel =
     String(
       (event as any)?.tipo_evento_label ??
-        (event as any)?.nombre_evento ??
-        event.category ??
-        ''
+      (event as any)?.nombre_evento ??
+      event.category ??
+      ''
     ).trim()
 
   const isFull = event.attendees >= event.capacity
@@ -121,7 +122,11 @@ const EventCard: FC<EventCardProps> = ({ event, onEdit, onDelete, onRegister, di
                 className='btn-register'
                 disabled={isDisabled}
               >
-                {isFull ? 'Evento Lleno' : isDisabled ? 'Ya estás registrado' : 'Asistiré'}
+                {isFull
+                  ? 'Evento Lleno'
+                  : isDisabled
+                    ? buttonText ?? 'Ya estás registrado'
+                    : 'Asistiré'}
               </button>
             )}
 

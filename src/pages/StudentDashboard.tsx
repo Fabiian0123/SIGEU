@@ -80,8 +80,16 @@ const StudentDashboard: FC = () => {
     if (attendingId === key) return
 
     try {
+      setAttendingId(key)
+
       const ev = events.find(e => String((e as any).id) === String(eventId))
       if (!ev) return
+
+      const isCanceled = Number((ev as any).id_estado) === 5
+      if (isCanceled) {
+        alert('No te puedes registrar: el evento está cancelado.')
+        return
+      }
 
       const currentAtt = Number((ev as any).attendees ?? 0)
       const currentCap = Number((ev as any).capacity ?? 0)
@@ -131,20 +139,30 @@ const StudentDashboard: FC = () => {
       )}
 
       <div className='events-grid'>
-        {events.map(event => (
-          <EventCard
-            key={String(event.id)}
-            event={event}
-            onRegister={handleAttend}
-            disabled={attendedIds.has(String(event.id)) || attendingId === String(event.id)}
-          />
-        ))}
+        {events.map(event => {
+          const isCanceled = Number((event as any).id_estado) === 5
+
+          return (
+            <EventCard
+              key={String(event.id)}
+              event={event}
+              onRegister={handleAttend}
+              disabled={
+                isCanceled ||
+                attendedIds.has(String(event.id)) ||
+                attendingId === String(event.id)
+              }
+              buttonText={isCanceled ? 'No te puedes registrar' : undefined}
+            />
+          )
+        })}
       </div>
     </div>
   )
 }
 
 export default StudentDashboard
+
 
 
 
