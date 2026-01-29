@@ -384,7 +384,7 @@ const EventForm: FC<EventFormProps> = ({ onSubmit, initialEvent, isLoading = fal
             name="id_estado"
             value={formData.id_estado}
             onChange={handleChange}
-            disabled={loadingCatalogos}
+            disabled={loadingCatalogos || !initialEvent}
           >
             <option value="">(Opcional) Selecciona estado</option>
             {estados.map(e => (

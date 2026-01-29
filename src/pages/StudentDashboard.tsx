@@ -32,7 +32,6 @@ const StudentDashboard: FC = () => {
   const [attendingId, setAttendingId] = useState<string | null>(null)
 
   useEffect(() => {
-    // recargar asistencias cuando cambie carrera/semestre
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
       const arr = raw ? (JSON.parse(raw) as string[]) : []
@@ -60,7 +59,6 @@ const StudentDashboard: FC = () => {
           Number(idSemestre)
         )
 
-        // ✅ resp ya es Event[]
         setEvents(resp)
       } catch (err) {
         console.error('Error cargando eventos filtrados', err)
@@ -86,8 +84,15 @@ const StudentDashboard: FC = () => {
       if (!ev) return
 
       const isCanceled = Number((ev as any).id_estado) === 5
+      const isFinished = Number((ev as any).id_estado) === 2
+
       if (isCanceled) {
         alert('No te puedes registrar: el evento está cancelado.')
+        return
+      }
+
+      if (isFinished) {
+        alert('No te puedes registrar: el evento ya finalizó.')
         return
       }
 
@@ -99,7 +104,9 @@ const StudentDashboard: FC = () => {
         return
       }
 
-      const updated = await eventosAPI.update(String(eventId), { attendees: currentAtt + 1 })
+      const updated = await eventosAPI.update(String(eventId), {
+        attendees: currentAtt + 1,
+      })
 
       setEvents(prev =>
         prev.map(e =>
@@ -141,6 +148,7 @@ const StudentDashboard: FC = () => {
       <div className='events-grid'>
         {events.map(event => {
           const isCanceled = Number((event as any).id_estado) === 5
+          const isFinished = Number((event as any).id_estado) === 2
 
           return (
             <EventCard
@@ -149,10 +157,17 @@ const StudentDashboard: FC = () => {
               onRegister={handleAttend}
               disabled={
                 isCanceled ||
+                isFinished ||
                 attendedIds.has(String(event.id)) ||
                 attendingId === String(event.id)
               }
-              buttonText={isCanceled ? 'No te puedes registrar' : undefined}
+              buttonText={
+                isCanceled
+                  ? 'No te puedes registrar'
+                  : isFinished
+                  ? 'Evento finalizado'
+                  : undefined
+              }
             />
           )
         })}
@@ -162,6 +177,7 @@ const StudentDashboard: FC = () => {
 }
 
 export default StudentDashboard
+
 
 
 
