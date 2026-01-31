@@ -156,7 +156,7 @@ const AuthPage: FC = () => {
         </form>
 
         <div className='auth-footer'>
-          <p>FESC - Fundación de Educación Superior Confanorte</p>
+          <p>FESC - Fundación de Estudios Superiores Comfanorte</p>
         </div>
       </div>
     </div>

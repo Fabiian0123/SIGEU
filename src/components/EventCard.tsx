@@ -14,13 +14,10 @@ interface EventCardProps {
 const EventCard: FC<EventCardProps> = ({ event, onEdit, onDelete, onRegister, disabled, buttonText }) => {
   const [isHovered, setIsHovered] = useState(false)
 
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('es-ES', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
+  const formatDateDMY = (dateStr: string) => {
+    if (!dateStr) return ''
+    const d = new Date(dateStr)
+    return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
   }
 
   const getStatusColor = (status: string) => {
@@ -83,12 +80,15 @@ const EventCard: FC<EventCardProps> = ({ event, onEdit, onDelete, onRegister, di
         <div className='event-card-details'>
           <div className='detail-item'>
             <strong>📅 Fecha:</strong>
-            <span>{event.date ? formatDate(event.date) : ''}</span>
+            <span>{event.date ? formatDateDMY(event.date) : ''}</span>
           </div>
 
           <div className='detail-item'>
             <strong>🕐 Hora:</strong>
-            <span>{event.time}</span>
+            <span>
+              {event.time}
+              {(event as any).endTime ? ` - ${(event as any).endTime}` : ''}
+            </span>
           </div>
 
           <div className='detail-item'>

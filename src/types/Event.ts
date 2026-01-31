@@ -1,3 +1,5 @@
+// src/types/Event.ts
+
 export type EventStatus =
   | 'creado'
   | 'finalizado'
@@ -17,8 +19,7 @@ export type EventCategory =
   | 'Eventos Administrativos'
   | 'Eventos de Innovación, Ciencia, y Tecnología'
   | 'Eventos Empresariales y de Empleabilidad'
-  | 'Otro'
-
+  | 'Otro';
 
 export interface Event {
   id: string;

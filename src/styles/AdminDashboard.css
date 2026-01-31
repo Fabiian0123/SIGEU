@@ -233,7 +233,8 @@
   background: #c82333;
 }
 
-.btn-close {
+
+.btn-cerrar {
   background: #6c757d;
   color: white;
   padding: 8px 12px;
@@ -242,9 +243,14 @@
   cursor: pointer;
   font-weight: 600;
   margin-bottom: 20px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
 }
 
-.btn-close:hover {
+.btn-cerrar:hover {
   background: #5a6268;
 }
 

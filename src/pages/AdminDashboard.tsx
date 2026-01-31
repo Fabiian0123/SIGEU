@@ -453,7 +453,7 @@ const AdminDashboard: FC = () => {
 
       {viewMode === 'crear' && showForm && (
         <div className='form-container'>
-          <button className='btn-close' onClick={() => setViewMode('lista')}>
+          <button className="btn-cerrar" onClick={() => setViewMode("lista")}>
             ✕ Cerrar
           </button>
           <EventForm

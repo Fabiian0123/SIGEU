@@ -24,7 +24,9 @@ type BackendEvento = {
   creado_por?: string | null
   fecha_creacion?: string | null
   observaciones?: string | null
-
+  hora_fin?: string | null
+  ubicacion?: string | null
+  obligatorio?: boolean | null
   attendees?: number | null
   asistentes?: number | null
   inscritos?: number | null
@@ -121,7 +123,7 @@ function mapStatus(be: BackendEvento): any {
   if (id === 2) return 'finalizado'
   if (id === 1) return 'creado'
 
-  const s = (be.nombre_estado ?? '').toLowerCase()
+  const s = String(be.nombre_estado ?? '').toLowerCase()
   if (s.includes('cancel')) return 'cancelado'
   if (s.includes('paus')) return 'pausado'
   if (s.includes('post')) return 'postpuesto'
@@ -132,6 +134,18 @@ function mapStatus(be: BackendEvento): any {
 }
 
 function mapBackendToEvent(be: BackendEvento): Event {
+  const asistentes = (be as any).attendees ?? (be as any).asistentes ?? (be as any).inscritos ?? 0
+
+  // Normalizar boolean por si llega 0/1 o 't'/'f'
+  const obligatorioNorm =
+    typeof be.obligatorio === 'boolean'
+      ? be.obligatorio
+      : be.obligatorio === 1 || be.obligatorio === '1' || be.obligatorio === 't' || be.obligatorio === 'true'
+        ? true
+        : be.obligatorio === 0 || be.obligatorio === '0' || be.obligatorio === 'f' || be.obligatorio === 'false'
+          ? false
+          : null
+
   return {
     id: String(be.id_evento),
     title: be.titulo_evento ?? '',
@@ -139,9 +153,12 @@ function mapBackendToEvent(be: BackendEvento): Event {
     date: be.fecha_inicio ?? '',
     dateEnd: be.fecha_fin ?? '',
     time: be.hora ?? '00:00',
+
+    // ✅ NO lo cambies: esto es la sala para la card y listados
     location: be.nombre_salas ?? '',
+
     capacity: Number(be.capacidad ?? 0),
-    attendees: Number((be as any).attendees ?? (be as any).asistentes ?? (be as any).inscritos ?? 0),
+    attendees: Number(asistentes),
 
     category: mapCategory(be),
 
@@ -168,8 +185,17 @@ function mapBackendToEvent(be: BackendEvento): Event {
     id_semestre: be.id_semestre ?? '',
     // @ts-ignore
     id_estado: be.id_estado ?? '',
+
+    // ✅ EXTRA para que el EventForm los pueda cargar al editar
+    // @ts-ignore
+    endTime: be.hora_fin ? String(be.hora_fin).slice(0, 5) : '',
+    // @ts-ignore
+    obligatorio: obligatorioNorm,
+    // @ts-ignore
+    ubicacion: be.ubicacion ?? '',
   }
 }
+
 
 function logHttpError(tag: string, response: Response, json: any, text: string) {
   console.error(`❌ ${tag} HTTP ${response.status} ${response.statusText} -> ${response.url}`)
@@ -249,6 +275,13 @@ export const eventosAPI = {
       fecha_inicio: evento.date,
       fecha_fin: evento.dateEnd,
       hora: evento.time,
+
+      // ✅ backend está pidiendo endTime
+      endTime: e.endTime,
+      // ✅ compatibilidad por si en view/SQL/model estás usando hora_fin
+      hora_fin: e.endTime,
+
+      obligatorio: e.obligatorio,
       capacidad: evento.capacity,
       observaciones: evento.observaciones ?? '',
       id_tipo_evento: e.id_tipo_evento,
@@ -257,6 +290,7 @@ export const eventosAPI = {
       id_carrera: e.id_carrera,
       id_semestre: e.id_semestre,
       creado_por: evento.organizer,
+      ubicacion: (e.id_salas === 1 || e.id_salas === 3) ? (evento.location ?? '') : '',
     }
 
     console.log('📤 Payload crear_evento:', payload)
@@ -293,6 +327,13 @@ export const eventosAPI = {
     if (evento.date !== undefined) payload.fecha_inicio = evento.date
     if (evento.dateEnd !== undefined) payload.fecha_fin = evento.dateEnd
     if (evento.time !== undefined) payload.hora = evento.time
+
+    if (e.endTime !== undefined) {
+      payload.endTime = e.endTime
+      payload.hora_fin = e.endTime
+    }
+
+    if (e.obligatorio !== undefined) payload.obligatorio = e.obligatorio
     if (evento.capacity !== undefined) payload.capacidad = evento.capacity
     if (evento.observaciones !== undefined) payload.observaciones = evento.observaciones
     if (e.id_tipo_evento !== undefined) payload.id_tipo_evento = e.id_tipo_evento
@@ -301,6 +342,7 @@ export const eventosAPI = {
     if (e.id_carrera !== undefined) payload.id_carrera = e.id_carrera
     if (e.id_semestre !== undefined) payload.id_semestre = e.id_semestre
     if (evento.organizer !== undefined) payload.creado_por = evento.organizer
+    if ((evento as any).ubicacion !== undefined) payload.ubicacion = (evento as any).ubicacion
 
     // ✅ soportar asistentes con ambos nombres
     if ((evento as any).attendees !== undefined) {
@@ -358,6 +400,9 @@ export const eventosAPI = {
     }
   },
 }
+
+
+
 
 
 
