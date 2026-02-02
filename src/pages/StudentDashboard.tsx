@@ -11,7 +11,7 @@ const StudentDashboard: FC = () => {
 
   const [searchParams] = useSearchParams()
   const idCarrera = searchParams.get('id_carrera')
-  const idSemestre = searchParams.get('id_semestre')
+  const idSemestre = searchParams.get('id_semestre') // ✅ ahora es opcional
 
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
@@ -44,7 +44,8 @@ const StudentDashboard: FC = () => {
 
   useEffect(() => {
     const loadEvents = async () => {
-      if (!idCarrera || !idSemestre) {
+      // ✅ Solo carrera es obligatoria
+      if (!idCarrera) {
         setEvents([])
         setLoading(false)
         return
@@ -54,9 +55,12 @@ const StudentDashboard: FC = () => {
         setLoading(true)
         setError('')
 
+        const sem =
+          idSemestre && Number(idSemestre) > 0 ? Number(idSemestre) : null
+
         const resp = await eventosAPI.filtrarPorCarreraSemestre(
           Number(idCarrera),
-          Number(idSemestre)
+          sem
         )
 
         setEvents(resp)
@@ -149,7 +153,6 @@ const StudentDashboard: FC = () => {
         {events.map(event => {
           const isCanceled = Number((event as any).id_estado) === 5
           const isFinished = Number((event as any).id_estado) === 2
-          const isObligatorio = Boolean((event as any).obligatorio)
 
           return (
             <EventCard
@@ -167,8 +170,6 @@ const StudentDashboard: FC = () => {
                   ? 'No te puedes registrar'
                   : isFinished
                   ? 'Evento finalizado'
-                  : isObligatorio
-                  ? 'Asistirás'
                   : undefined
               }
             />
@@ -180,6 +181,7 @@ const StudentDashboard: FC = () => {
 }
 
 export default StudentDashboard
+
 
 
 

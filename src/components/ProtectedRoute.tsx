@@ -17,7 +17,6 @@ const ProtectedRoute: FC<ProtectedRouteProps> = ({ children, requiredRole }) => 
 
   // Validación de rol
   if (requiredRole && currentUser?.rol !== requiredRole) {
-    // ✅ permitir que el ADMIN vea la vista estudiante
     if (currentUser?.rol === 'administrativo' && requiredRole === 'estudiante') {
       return <>{children}</>
     }

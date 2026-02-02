@@ -244,7 +244,6 @@ const EventForm: FC<EventFormProps> = ({
     if (!formData.id_tipo_evento)
       newErrors.id_tipo_evento = "El tipo de evento es requerido";
     if (!formData.id_carrera) newErrors.id_carrera = "La carrera es requerida";
-    if (!formData.id_semestre) newErrors.id_semestre = "El semestre es requerido";
     if (!formData.id_salas) newErrors.id_salas = "La sala es requerida";
 
     if (formData.obligatorio === null) {
@@ -637,13 +636,14 @@ const EventForm: FC<EventFormProps> = ({
         <Row className="g-1">
           <Col xs={12} md={6}>
             <div className="form-group">
-              <label htmlFor="id_semestre">Semestre</label>
+              <label htmlFor="id_semestre">
+                Semestre <span style={{ fontWeight: 400, color: '#888' }}></span>
+              </label>
               <select
                 id="id_semestre"
                 name="id_semestre"
                 value={formData.id_semestre}
                 onChange={handleChange}
-                className={errors.id_semestre ? "input-error" : ""}
                 disabled={loadingCatalogos}
               >
                 <option value="">Selecciona un semestre</option>
@@ -653,9 +653,6 @@ const EventForm: FC<EventFormProps> = ({
                   </option>
                 ))}
               </select>
-              {errors.id_semestre && (
-                <span className="error-message">{errors.id_semestre}</span>
-              )}
             </div>
           </Col>
 

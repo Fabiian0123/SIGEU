@@ -47,8 +47,12 @@ const EventCard: FC<EventCardProps> = ({ event, onEdit, onDelete, onRegister, di
       ''
     ).trim()
 
+  const isObligatorio = Boolean((event as any).obligatorio)
   const isFull = event.attendees >= event.capacity
-  const isDisabled = Boolean(disabled) || isFull
+
+  // ✅ Si es obligatorio, NO se puede dar click (inhabilitado)
+  // ✅ Si es obligatorio, NO nos importa si está "lleno" para el texto del botón
+  const isDisabled = Boolean(disabled) || isObligatorio || (!isObligatorio && isFull)
 
   return (
     <div
@@ -124,11 +128,13 @@ const EventCard: FC<EventCardProps> = ({ event, onEdit, onDelete, onRegister, di
                 className='btn-register'
                 disabled={isDisabled}
               >
-                {isFull
-                  ? 'Evento Lleno'
-                  : isDisabled
-                    ? buttonText ?? 'Ya estás registrado'
-                    : 'Asistiré'}
+                {isObligatorio
+                  ? 'Asistirás'
+                  : isFull
+                    ? 'Evento Lleno'
+                    : isDisabled
+                      ? buttonText ?? 'Ya estás registrado'
+                      : 'Asistiré'}
               </button>
             )}
 
@@ -161,6 +167,9 @@ const EventCard: FC<EventCardProps> = ({ event, onEdit, onDelete, onRegister, di
 }
 
 export default EventCard
+
+
+
 
 
 

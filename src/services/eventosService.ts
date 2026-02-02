@@ -222,8 +222,15 @@ export const eventosAPI = {
     return backendEvents.map(mapBackendToEvent)
   },
 
-  async filtrarPorCarreraSemestre(idCarrera: number, idSemestre: number): Promise<Event[]> {
-    const url = `${API_BASE_URL}/eventos/filtrar/?id_carrera=${idCarrera}&id_semestre=${idSemestre}`
+  async filtrarPorCarreraSemestre(idCarrera: number, idSemestre?: number | null): Promise<Event[]> {
+    const qs = new URLSearchParams()
+    qs.set('id_carrera', String(idCarrera))
+
+    if (idSemestre !== undefined && idSemestre !== null && Number(idSemestre) > 0) {
+      qs.set('id_semestre', String(idSemestre))
+    }
+
+    const url = `${API_BASE_URL}/eventos/filtrar/?${qs.toString()}`
     console.log('Intentando conectar a:', url)
 
     const headers: HeadersInit = {
@@ -241,23 +248,6 @@ export const eventosAPI = {
 
     const backendEvents = normalizeEventsPayload(json)
     return backendEvents.map(mapBackendToEvent)
-  },
-
-  async getById(id: string): Promise<Event> {
-    const headers: HeadersInit = {
-      Accept: 'application/json',
-      ...authHeaders(),
-    }
-
-    const response = await fetch(`${API_BASE_URL}/eventos/${id}/`, { headers })
-    const { json, text } = await readResponse(response)
-
-    if (!response.ok) {
-      logHttpError('getById', response, json, text)
-      throw new Error(json ? JSON.stringify(json) : `Error ${response.status}`)
-    }
-
-    return mapBackendToEvent(json as BackendEvento)
   },
 
   async create(evento: Omit<Event, 'id'>): Promise<Event> {
@@ -282,7 +272,9 @@ export const eventosAPI = {
       id_salas: e.id_salas,
       id_estado: e.id_estado ?? 1,
       id_carrera: e.id_carrera,
-      id_semestre: e.id_semestre,
+      ...(e.id_semestre !== '' && e.id_semestre !== null && e.id_semestre !== undefined
+        ? { id_semestre: e.id_semestre }
+        : {}),
       creado_por: evento.organizer,
       ubicacion: (e.id_salas === 1 || e.id_salas === 3) ? (evento.location ?? '') : '',
     }
