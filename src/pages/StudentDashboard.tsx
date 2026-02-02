@@ -2,13 +2,10 @@ import { FC, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Event } from '../types/Event'
 import EventCard from '../components/EventCard'
-import { useAuth } from '../contexts/AuthContext'
 import { eventosAPI } from '../services/eventosService'
 import '../styles/StudentDashboard.css'
 
 const StudentDashboard: FC = () => {
-  const { currentUser } = useAuth()
-
   const [searchParams] = useSearchParams()
   const idCarrera = searchParams.get('id_carrera')
   const idSemestre = searchParams.get('id_semestre') // ✅ ahora es opcional
@@ -55,13 +52,9 @@ const StudentDashboard: FC = () => {
         setLoading(true)
         setError('')
 
-        const sem =
-          idSemestre && Number(idSemestre) > 0 ? Number(idSemestre) : null
+        const sem = idSemestre && Number(idSemestre) > 0 ? Number(idSemestre) : null
 
-        const resp = await eventosAPI.filtrarPorCarreraSemestre(
-          Number(idCarrera),
-          sem
-        )
+        const resp = await eventosAPI.filtrarPorCarreraSemestre(Number(idCarrera), sem)
 
         setEvents(resp)
       } catch (err) {
@@ -138,7 +131,7 @@ const StudentDashboard: FC = () => {
     <div className='student-dashboard'>
       <div className='dashboard-header'>
         <h1>Mis Eventos</h1>
-        <p>Bienvenido, {currentUser?.nombre} 👋</p>
+        <p>Bienvenido 👋</p>
       </div>
 
       {loading && <p>Cargando eventos...</p>}
@@ -181,6 +174,7 @@ const StudentDashboard: FC = () => {
 }
 
 export default StudentDashboard
+
 
 
 

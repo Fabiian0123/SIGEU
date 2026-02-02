@@ -2,12 +2,10 @@ import { FC, useState, useEffect } from 'react'
 import { Event } from '../types/Event'
 import EventForm from '../components/EventForm'
 import EventCard from '../components/EventCard'
-import { useAuth } from '../contexts/AuthContext'
 import { eventosAPI } from '../services/eventosService'
 import '../styles/AdminDashboard.css'
 
 const AdminDashboard: FC = () => {
-  const { currentUser } = useAuth()
   const [events, setEvents] = useState<Event[]>([])
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([])
   const [showForm, setShowForm] = useState(false)
@@ -116,7 +114,6 @@ const AdminDashboard: FC = () => {
     }
   }
 
-
   const handleUpdateEvent = async (updatedEvent: Event) => {
     try {
       const updatedId = String((updatedEvent as any).id ?? (updatedEvent as any).id_evento ?? '')
@@ -214,7 +211,7 @@ const AdminDashboard: FC = () => {
       <div className='admin-dashboard'>
         <div className='dashboard-header'>
           <h1>🛠️ Panel de Administración</h1>
-          <p>Gestor de Eventos - {currentUser?.nombre}</p>
+          <p>Gestor de Eventos</p>
         </div>
         <div className='error-container'>
           <div className='error-message'>⚠️ {error}</div>
@@ -233,7 +230,7 @@ const AdminDashboard: FC = () => {
       <div className='admin-dashboard'>
         <div className='dashboard-header'>
           <h1>🛠️ Panel de Administración</h1>
-          <p>Gestor de Eventos - {currentUser?.nombre}</p>
+          <p>Gestor de Eventos</p>
         </div>
         <div className='loading-container'>
           <div className='spinner'></div>
@@ -247,7 +244,7 @@ const AdminDashboard: FC = () => {
     <div className='admin-dashboard'>
       <div className='dashboard-header'>
         <h1>🛠️ Panel de Administración</h1>
-        <p>Gestor de Eventos - {currentUser?.nombre}</p>
+        <p>Gestor de Eventos</p>
       </div>
 
       {/* Tabs de navegación */}
@@ -477,6 +474,7 @@ const AdminDashboard: FC = () => {
 }
 
 export default AdminDashboard
+
 
 
 

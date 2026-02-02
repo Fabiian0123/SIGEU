@@ -201,6 +201,7 @@ function logHttpError(tag: string, response: Response, json: any, text: string) 
 }
 
 export const eventosAPI = {
+
   async getAll(): Promise<Event[]> {
     const url = `${API_BASE_URL}/eventos/`
     console.log('Intentando conectar a:', url)
@@ -220,6 +221,27 @@ export const eventosAPI = {
 
     const backendEvents = normalizeEventsPayload(json)
     return backendEvents.map(mapBackendToEvent)
+  },
+
+  async getById(id: string): Promise<Event> {
+    const url = `${API_BASE_URL}/eventos/${id}/`
+    console.log('Intentando conectar a:', url)
+
+    const headers: HeadersInit = {
+      Accept: 'application/json',
+      ...authHeaders(),
+    }
+
+    const response = await fetch(url, { method: 'GET', headers })
+    const { json, text } = await readResponse(response)
+
+    if (!response.ok) {
+      logHttpError('get_evento_by_id', response, json, text)
+      throw new Error(json ? JSON.stringify(json) : `Error ${response.status}`)
+    }
+
+    const evento = (json as any)?.data ?? json
+    return mapBackendToEvent(evento as BackendEvento)
   },
 
   async filtrarPorCarreraSemestre(idCarrera: number, idSemestre?: number | null): Promise<Event[]> {
@@ -399,6 +421,7 @@ export const eventosAPI = {
     }
   },
 }
+
 
 
 
