@@ -5,7 +5,9 @@ export type EventStatus =
   | 'finalizado'
   | 'postpuesto'
   | 'pausado'
-  | 'cancelado';
+  | 'cancelado'
+  | 'en curso';
+
 
 export type EventCategory =
   | 'Institucional'

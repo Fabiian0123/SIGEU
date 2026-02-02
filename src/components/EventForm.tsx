@@ -1,8 +1,15 @@
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC, useEffect, useMemo, useRef, useState } from "react";
 import { Row, Col } from "react-bootstrap";
 import { Event } from "../types/Event";
 import "../styles/EventForm.css";
-import { catalogosApi, Carrera, EstadoManual, Sala, Semestre, TipoEvento, } from "../api/catalogos";
+import {
+  catalogosApi,
+  Carrera,
+  EstadoManual,
+  Sala,
+  Semestre,
+  TipoEvento,
+} from "../api/catalogos";
 
 interface EventFormProps {
   onSubmit: (event: Event) => void;
@@ -108,6 +115,7 @@ const EventForm: FC<EventFormProps> = ({
   useEffect(() => {
     if (!initialEvent) return;
     const ie: any = initialEvent;
+
     const pickId = (...keys: string[]) => {
       for (const k of keys) {
         if (ie?.[k] !== undefined && ie?.[k] !== null && ie?.[k] !== "")
@@ -115,9 +123,12 @@ const EventForm: FC<EventFormProps> = ({
       }
       return "";
     };
+
     const toNumOrEmpty = (v: any) =>
       v === "" || v === null || v === undefined ? "" : Number(v);
+
     const toDate10 = (v: any) => (v ? String(v).slice(0, 10) : "");
+
     setFormData((prev) => ({
       ...prev,
       title: ie?.title ?? ie?.titulo_evento ?? "",
@@ -137,11 +148,10 @@ const EventForm: FC<EventFormProps> = ({
         return v === 3 || v === 4 || v === 5 ? v : "";
       })(),
       obligatorio: ie?.obligatorio ?? null, // ✅ nuevo
-
-      location: ie?.ubicacion ?? ie?.location ?? "",
+      // ✅ IMPORTANTE: para edición, usa el campo real de BD
+      location: (ie?.ubicacion ?? "").trim() || (ie?.location ?? "").replace(/^Salones\s+/i, "").replace(/^Convenios\s+/i, "").trim() || "",
       capacity: Number(ie?.capacity ?? ie?.capacidad ?? 1),
       attendees: Number(ie?.attendees ?? 0),
-
       observaciones: ie?.observaciones ?? "",
       fechaCreacion:
         toDate10(ie?.fecha_creacion ?? ie?.fechaCreacion) ||
@@ -150,21 +160,33 @@ const EventForm: FC<EventFormProps> = ({
       image: ie?.image,
     }));
   }, [initialEvent]);
+
   const salaSeleccionada = useMemo(() => {
     if (!formData.id_salas) return null;
     return salas.find((s) => s.id_salas === formData.id_salas) ?? null;
   }, [formData.id_salas, salas]);
+
   const locationEnabled = formData.id_salas === 1 || formData.id_salas === 3;
+
+  // ✅ Evita borrar ubicación al montar (especialmente en edición)
+  const didMountLocationRef = useRef(false);
+
   useEffect(() => {
-    if (!locationEnabled && formData.location) {
-      setFormData((prev) => ({ ...prev, location: "" }));
+    if (!locationEnabled) {
+      setFormData((prev) => {
+        if (!prev.location) return prev;
+        return { ...prev, location: "" };
+      });
+
       setErrors((prev) => {
+        if (!prev.location) return prev;
         const n = { ...prev };
         delete n.location;
         return n;
       });
     }
   }, [locationEnabled]);
+
   const today = new Date();
   const localToday =
     today.getFullYear() +
@@ -180,20 +202,22 @@ const EventForm: FC<EventFormProps> = ({
     String(now.getMinutes()).padStart(2, "0");
 
   const minTime = formData.startDate === localToday ? localNowTime : undefined;
+
   useEffect(() => {
     if (!formData.time || !formData.endTime) return;
     if (formData.endTime <= formData.time) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        endTime: ""
+        endTime: "",
       }));
 
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        endTime: "La hora fin debe ser mayor a la hora inicio"
+        endTime: "La hora fin debe ser mayor a la hora inicio",
       }));
     }
   }, [formData.time]);
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -240,10 +264,13 @@ const EventForm: FC<EventFormProps> = ({
   };
 
   const handleChange = (
+
+
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
+
     const { name, value } = e.target;
 
     if (
@@ -255,6 +282,8 @@ const EventForm: FC<EventFormProps> = ({
         ...prev,
         obligatorio: value === "si",
       }));
+      const { name, value } = e.target;
+      console.log("✍️ handleChange", { name, value, type: (e.target as any).type });
 
       if (errors[name]) {
         setErrors((prev) => {
@@ -295,6 +324,12 @@ const EventForm: FC<EventFormProps> = ({
       });
     }
   };
+  useEffect(() => {
+    console.log("🧭 WATCH -> id_salas/capacity", {
+      id_salas: formData.id_salas,
+      capacity: formData.capacity,
+    });
+  }, [formData.id_salas, formData.capacity]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -325,7 +360,12 @@ const EventForm: FC<EventFormProps> = ({
       organizer: formData.organizer,
       image: formData.image,
     };
-
+    console.log("✅ SUBMIT FINAL", {
+      id_salas: formData.id_salas,
+      capacity: formData.capacity,
+      attendees: formData.attendees,
+    });
+    // console.log("✅ SUBMIT formData.capacity:", formData.capacity, "type:", typeof formData.capacity);
     onSubmit(event);
   };
 
@@ -534,7 +574,7 @@ const EventForm: FC<EventFormProps> = ({
               type="text"
               id="location"
               name="location"
-              value={formData.location}
+              value={formData.location || String((initialEvent as any)?.ubicacion ?? "").trim()}
               onChange={handleChange}
               placeholder={
                 locationEnabled
@@ -623,7 +663,14 @@ const EventForm: FC<EventFormProps> = ({
             <div className="form-group">
               <label>Obligatorio</label>
               <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-                <label style={{ margin: 0, display: "flex", gap: "6px", alignItems: "center" }}>
+                <label
+                  style={{
+                    margin: 0,
+                    display: "flex",
+                    gap: "6px",
+                    alignItems: "center",
+                  }}
+                >
                   <input
                     type="checkbox"
                     name="obligatorio"
@@ -634,7 +681,14 @@ const EventForm: FC<EventFormProps> = ({
                   Sí
                 </label>
 
-                <label style={{ margin: 0, display: "flex", gap: "6px", alignItems: "center" }}>
+                <label
+                  style={{
+                    margin: 0,
+                    display: "flex",
+                    gap: "6px",
+                    alignItems: "center",
+                  }}
+                >
                   <input
                     type="checkbox"
                     name="obligatorio"
@@ -722,6 +776,7 @@ const EventForm: FC<EventFormProps> = ({
 };
 
 export default EventForm;
+
 
 
 

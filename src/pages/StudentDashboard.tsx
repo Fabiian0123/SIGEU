@@ -149,6 +149,7 @@ const StudentDashboard: FC = () => {
         {events.map(event => {
           const isCanceled = Number((event as any).id_estado) === 5
           const isFinished = Number((event as any).id_estado) === 2
+          const isObligatorio = Boolean((event as any).obligatorio)
 
           return (
             <EventCard
@@ -166,6 +167,8 @@ const StudentDashboard: FC = () => {
                   ? 'No te puedes registrar'
                   : isFinished
                   ? 'Evento finalizado'
+                  : isObligatorio
+                  ? 'Asistirás'
                   : undefined
               }
             />
@@ -177,6 +180,7 @@ const StudentDashboard: FC = () => {
 }
 
 export default StudentDashboard
+
 
 
 

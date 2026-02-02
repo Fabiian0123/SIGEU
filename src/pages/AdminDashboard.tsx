@@ -116,6 +116,7 @@ const AdminDashboard: FC = () => {
     }
   }
 
+
   const handleUpdateEvent = async (updatedEvent: Event) => {
     try {
       const updatedId = String((updatedEvent as any).id ?? (updatedEvent as any).id_evento ?? '')
@@ -172,10 +173,18 @@ const AdminDashboard: FC = () => {
     }
   }
 
-  const handleEditEvent = (event: Event) => {
-    setEditingEvent(event)
+  const handleEditEvent = async (event: Event) => {
+    try {
+      const id = String((event as any).id ?? (event as any).id_evento ?? "")
+      const fresh = await eventosAPI.getById(id)   // <- garantiza ubicacion
+      setEditingEvent(fresh)
+    } catch (err) {
+      // fallback: si falla el GET por id, usa el que ya tienes
+      setEditingEvent(event)
+    }
+
     setShowForm(true)
-    setViewMode('crear')
+    setViewMode("crear")
   }
 
   // Estadísticas
@@ -293,6 +302,7 @@ const AdminDashboard: FC = () => {
                 <option value='3'>Postpuesto</option>
                 <option value='4'>Pausado</option>
                 <option value='5'>Cancelado</option>
+                <option value='6'>En Curso</option>
               </select>
             </div>
           </div>

@@ -155,6 +155,8 @@ const HomePage: FC = () => {
             <option value='en_progreso'>En Progreso</option>
             <option value='finalizado'>Finalizado</option>
             <option value='cancelado'>Cancelado</option>
+            <option value='en curso'>En Curso</option>
+
           </select>
         </div>
       </div>

@@ -24,6 +24,8 @@ const EventCard: FC<EventCardProps> = ({ event, onEdit, onDelete, onRegister, di
     switch (status) {
       case 'creado':
         return '#3498db'
+      case 'en_curso':
+        return '#2980b9'
       case 'finalizado':
         return '#27ae60'
       case 'postpuesto':
@@ -159,6 +161,7 @@ const EventCard: FC<EventCardProps> = ({ event, onEdit, onDelete, onRegister, di
 }
 
 export default EventCard
+
 
 
 

@@ -121,6 +121,7 @@ function mapStatus(be: BackendEvento): any {
   if (id === 4) return 'pausado'
   if (id === 3) return 'postpuesto'
   if (id === 2) return 'finalizado'
+  if (id === 6) return 'en_curso'
   if (id === 1) return 'creado'
 
   const s = String(be.nombre_estado ?? '').toLowerCase()
@@ -128,37 +129,35 @@ function mapStatus(be: BackendEvento): any {
   if (s.includes('paus')) return 'pausado'
   if (s.includes('post')) return 'postpuesto'
   if (s.includes('final')) return 'finalizado'
+  if (s.includes('curso')) return 'en_curso'
   if (s.includes('crea')) return 'creado'
 
   return 'creado'
 }
 
 function mapBackendToEvent(be: BackendEvento): Event {
-  const asistentes = (be as any).attendees ?? (be as any).asistentes ?? (be as any).inscritos ?? 0
+  const fi = be.fecha_inicio ? String(be.fecha_inicio).slice(0, 10) : ''
+  const ff = be.fecha_fin ? String(be.fecha_fin).slice(0, 10) : ''
 
-  // Normalizar boolean por si llega 0/1 o 't'/'f'
-  const obligatorioNorm =
-    typeof be.obligatorio === 'boolean'
-      ? be.obligatorio
-      : be.obligatorio === 1 || be.obligatorio === '1' || be.obligatorio === 't' || be.obligatorio === 'true'
-        ? true
-        : be.obligatorio === 0 || be.obligatorio === '0' || be.obligatorio === 'f' || be.obligatorio === 'false'
-          ? false
-          : null
+  const salaId = typeof be.id_salas === 'number' ? be.id_salas : null
+  const showUbicacion = salaId === 1 || salaId === 3
+
+  const salaNombre = String(be.nombre_salas ?? '').trim()
+  const ubic = String((be as any).ubicacion ?? '').trim()
+  const lugar = `${salaNombre}${showUbicacion && ubic ? ` ${ubic}` : ''}`.trim()
 
   return {
     id: String(be.id_evento),
     title: be.titulo_evento ?? '',
     description: be.descripcion ?? '',
-    date: be.fecha_inicio ?? '',
-    dateEnd: be.fecha_fin ?? '',
+    date: fi,
+    dateEnd: ff,
     time: be.hora ?? '00:00',
-
-    // ✅ NO lo cambies: esto es la sala para la card y listados
-    location: be.nombre_salas ?? '',
-
+    // @ts-ignore
+    endTime: (be as any).hora_fin ?? (be as any).endTime ?? '',
+    location: lugar,
     capacity: Number(be.capacidad ?? 0),
-    attendees: Number(asistentes),
+    attendees: Number((be as any).attendees ?? (be as any).asistentes ?? (be as any).inscritos ?? 0),
 
     category: mapCategory(be),
 
@@ -185,17 +184,12 @@ function mapBackendToEvent(be: BackendEvento): Event {
     id_semestre: be.id_semestre ?? '',
     // @ts-ignore
     id_estado: be.id_estado ?? '',
-
-    // ✅ EXTRA para que el EventForm los pueda cargar al editar
     // @ts-ignore
-    endTime: be.hora_fin ? String(be.hora_fin).slice(0, 5) : '',
+    obligatorio: (be as any).obligatorio ?? null,
     // @ts-ignore
-    obligatorio: obligatorioNorm,
-    // @ts-ignore
-    ubicacion: be.ubicacion ?? '',
+    ubicacion: (be as any).ubicacion ?? '',
   }
 }
-
 
 function logHttpError(tag: string, response: Response, json: any, text: string) {
   console.error(`❌ ${tag} HTTP ${response.status} ${response.statusText} -> ${response.url}`)
@@ -342,7 +336,20 @@ export const eventosAPI = {
     if (e.id_carrera !== undefined) payload.id_carrera = e.id_carrera
     if (e.id_semestre !== undefined) payload.id_semestre = e.id_semestre
     if (evento.organizer !== undefined) payload.creado_por = evento.organizer
-    if ((evento as any).ubicacion !== undefined) payload.ubicacion = (evento as any).ubicacion
+
+    // ✅ FIX: Ubicación se guarda en BD como "ubicacion", pero el form envía "location".
+    // Solo aplica si id_salas es 1 o 3. Si cambia a otra sala, se limpia.
+    const salaId =
+      e.id_salas !== undefined && e.id_salas !== null && e.id_salas !== ''
+        ? Number(e.id_salas)
+        : undefined
+
+    if (salaId === 1 || salaId === 3) {
+      if (evento.location !== undefined) payload.ubicacion = evento.location
+      if ((evento as any).ubicacion !== undefined) payload.ubicacion = (evento as any).ubicacion
+    } else if (salaId !== undefined) {
+      payload.ubicacion = ''
+    }
 
     // ✅ soportar asistentes con ambos nombres
     if ((evento as any).attendees !== undefined) {
@@ -400,6 +407,7 @@ export const eventosAPI = {
     }
   },
 }
+
 
 
 
